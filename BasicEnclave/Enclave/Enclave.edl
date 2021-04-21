@@ -2,12 +2,12 @@ enclave {
 
 	trusted {
 		/* define ECALLs here. */
-		int secure_multiply(int, int, int*);
+		public int secure_multiply(int a, int b);
 	};
 	
 	untrusted {
 		/* define OCALLs here. */
-		void ocall_print(const char* str);
+		void ocall_print([in, string]const char* str);
 	};
 };
 

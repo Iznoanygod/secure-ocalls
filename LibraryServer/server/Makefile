@@ -1,12 +1,11 @@
 CC = gcc
 CFLAGS = -g
 
-all:
-	$(CC) $(CFLAGS) server.c -o server
-	$(CC) $(CFLAGS) library.c -o library.so -fPIC -shared
+all: library server
+
 library:
 	$(CC) $(CFLAGS) library.c -o library.so -fPIC -shared
 server:
 	$(CC) $(CFLAGS) server.c -o server
 clean:
-	rm server
+	rm server library.so

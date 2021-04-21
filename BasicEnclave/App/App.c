@@ -10,7 +10,7 @@ void ocall_print(const char* str) {
 }
 
 int initialize_enclave(char* enclave_file){
-	sgx_status_t = SGX_ERROR_UNEXPECTED;
+	sgx_status_t ret = SGX_ERROR_UNEXPECTED;
 	ret = sgx_create_enclave(enclave_file, SGX_DEBUG_FLAG, NULL, NULL, &global_eid, NULL);
 	if (ret != SGX_SUCCESS) {
 		printf("Enclave initialization error %d\n", ret);
@@ -20,12 +20,18 @@ int initialize_enclave(char* enclave_file){
 }
 
 int SGX_CDECL main (int argc, char** argv){
+	(void)argc;
+	(void)argv;
 	if(initialize_enclave("enclave.signed.so") < 0) {
 		return -1;
 	}
 	printf("Performing 8349 * 13764\n");
 	int res;
-	sgx_status_t = secure_multiply(&res);
+	sgx_status_t ret = secure_multiply(global_eid, &res, 8349, 13764);
+	if(ret != SGX_SUCCESS) {
+		printf("SGX failure\n");
+		return 0;
+	}
 	printf("result: %d\n", res);
 	return 0;
 }
