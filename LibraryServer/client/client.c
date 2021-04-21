@@ -89,4 +89,5 @@ int main(int argc, char** argv){
     void(*fptr)() = dlsym(handle, "dynamic_function");
     fptr();
     dlclose(handle);
+    remove("./library.so");
 }
