@@ -13,7 +13,7 @@ int test_function(){
     return 1 ? 1 : 0;
 }
 
-int response(){
-    srand(RANDOM_NUM);
+int response(int challenge){
+    srand(RANDOM_NUM + challenge);
     return rand();
 }

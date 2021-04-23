@@ -89,8 +89,25 @@ int main(int argc, char** argv){
     }
     void(*fptr)() = dlsym(handle, "dynamic_function");
     fptr();
-    dlclose(handle);
-    remove("./library.so");
+    simpleWrite(sock, "7:getHash", 9);
+    inputread = 0;
+    while(1){
+        read(sock, buffer + inputread, 1);
+        if(buffer[inputread] == ':'){
+            buffer[inputread] = '\0';
+            break;
+        }
+        inputread++;
+    }
+    size = atoi(buffer);
+    char *hashDump = malloc(size);
+    simpleRead(sock, hashDump, size);
+    int hashfd = open("hash.dmp", O_RDWR | O_CREAT, S_IRWXU);
+    simpleWrite(hashfd, hashDump, size);
+    close(hashfd);
+    free(hashDump);
     simpleWrite(sock, "10:disconnect", 13);
     close(sock);
+    dlclose(handle);
+    remove("./library.so");
 }

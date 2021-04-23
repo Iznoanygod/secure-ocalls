@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -g
+CFLAGS = -g -ldl -lssl -lcrypto
 
-.PHONY = all server
+.PHONY: all server
 all: server
 
 server:

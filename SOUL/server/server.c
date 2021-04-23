@@ -117,9 +117,10 @@ int main(int argc, char** argv) {
             return 0;
         }
         printf("Accepted client...\n");
-        
+        srand(time(0));
         int randomvalue = rand();
         while(1){
+            printf("Waiting for command\n");
             char* message = getMessage(sock);
             if(!strcmp(message, "disconnect")){
                 free(message);
@@ -128,7 +129,6 @@ int main(int argc, char** argv) {
             }
             else if(!strcmp(message, "getLibrary")){
                 int status = compileLibrary(randomvalue);
-                printf("%d\n", status);
                 int libraryFD = open("library.so", O_RDONLY);
                 int size = lseek(libraryFD, 0, SEEK_END);
                 lseek(libraryFD, 0, SEEK_SET);
@@ -142,9 +142,74 @@ int main(int argc, char** argv) {
                 simpleWrite(sock, libraryso, size);
                 free(libraryso);
             }
-            else if(!strcmp(message, "getTable")){
-
+            else if(!strcmp(message, "getHash")){
+                if(access("library.so", F_OK)) {
+                    printf("No dump file\n");
+                    write(sock, "0:", 2);
+                    break;
+                }
+                char command[512];
+                system("objdump -T library.so | grep -e dynamic_function -e response -e test_function > table.odmp");
+                int dmpfd = open("table.odmp", O_RDONLY);
+                int size = lseek(dmpfd, 0, SEEK_END);
+                lseek(dmpfd, 0, SEEK_SET);
+                char* dmp = malloc(size + 1);
+                simpleRead(dmpfd, dmp, size);
+                dmp[size] = '\0';
+                close(dmpfd);
+                void* handle = dlopen("./library.so", RTLD_NOW);
+                int fsize;
+                char name[512];
+                sprintf(command, "echo %d > hash.dmp", randomvalue);
+                system(command);
+                FILE* hdmp = fopen("hash.dmp", "a+");
+                int status;
+                int bytesread = 0;
+                while(sscanf(dmp + bytesread, "%*s %*c %*s %*s %x %*s %s\n%n", &fsize, name, &status) != EOF){
+                    bytesread += status;
+                    void* ptr = dlsym(handle, name);
+                    unsigned char hash[20];
+                    SHA1(ptr, fsize, hash);
+                    //sprintf(command, "echo %s %s >> hash.dmp", name, hash);
+                    //system(command);
+                    fprintf(hdmp, "%s ", name);
+                    for (int i = 0; i < 20; i++) {
+                        fprintf(hdmp, "%02x", hash[i]);
+                    }
+                    fprintf(hdmp, "\n");
+                }
+                fclose(hdmp);
+                int ffd = open("hash.dmp", O_RDONLY);
+                int ffs = lseek(ffd, 0, SEEK_END);
+                lseek(ffd, 0, SEEK_SET);
+                char* fbuff = malloc(ffd);
+                simpleRead(ffd, fbuff, ffs);
+                sprintf(command, "%d:", ffs);
+                simpleWrite(sock, command, strlen(command));
+                simpleWrite(sock, fbuff, ffs);
+                free(fbuff);
+                close(ffd);
+                free(dmp);
+                dlclose(handle);
+                remove("hash.dmp");
+                remove("table.odmp");
             }
+            else if(!strcmp(message, "getResponse")){
+                srand(random_value);
+                int challenge = rand();
+                srand(random_value + challenge);
+                int response = rand();
+                simpleWrite(sock, (char*)&challenge, sizeof(int));
+                int client_r;
+                simpleRead(sock, (char*)&challenge, sizeof(int));
+                if(client_r != response){
+                    free(message);
+                    remove("./library.so");
+                    goto loopend;
+                }
+                    
+            }
+            free(message);
         }
 loopend:
         close(sock);
