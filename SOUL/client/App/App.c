@@ -200,12 +200,16 @@ int SGX_CDECL main (int argc, char** argv) {
         getpagesize(), PROT_READ | PROT_WRITE | PROT_EXEC);
     printf("Trying to change function return value\n");
     *((char*)basic_return_test + 5) = 0;
-
+    // Calling functions without enclave
+    
+    printf("Calling library functions without enclave\n");
+    printf("string_print_test: %d\n", ((int(*)(void))string_print_test)());
+    printf("basic_return_test: %d\n", ((int(*)(void))basic_return_test)());
     // Calling enclave, modified library
     enclave_run(global_eid);
 
     dlclose(handle);
-    //remove("./library.so");
-    //remove("./hash.dmp");
+    remove("./library.so");
+    remove("./hash.dmp");
 
 }

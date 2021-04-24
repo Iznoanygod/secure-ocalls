@@ -6,7 +6,7 @@ void construction(){
 }
 
 int string_print_test(){
-    char str1[] = "this function hash not been modified\n";
+    char str1[] = "this function has not been modified\n";
     char str2[] = "this function has been modified\n";
     printf(str1);
     return 0;
