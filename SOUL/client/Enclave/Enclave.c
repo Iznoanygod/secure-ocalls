@@ -31,7 +31,7 @@ void enclave_add_function(const char* name, void* fcnptr, int size, const char* 
     loadedFunctions++;
 }
 void enclave_run(){
-    ocall_print("Enclave launched...\n");
+    ocall_print("Enclave launched...\n\n");
     char buffer[512];
     for(int i = 1; i < loadedFunctions; i++){
         void* fcnptr = fTable[i].fcnptr;
@@ -49,7 +49,7 @@ void enclave_run(){
         ocall_print("Checking hash of function\n");
         
         if(strncmp(func_hash_dig, func_digest, 40)){
-            ocall_print("Function hashes did not match, library was modified!\n");
+            ocall_print("Function hashes did not match, library was modified!\n\n");
             snprintf(buffer, 512, "%s was modified\n",func_name);
             continue;
         }
@@ -59,5 +59,6 @@ void enclave_run(){
         ocall_runfcn(&return_value, fcnptr);
         snprintf(buffer, 512, "%s: %d\n", func_name, return_value);
         ocall_print(buffer);
+        ocall_print("\n");
     }
 }

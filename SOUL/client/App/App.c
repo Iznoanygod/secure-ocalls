@@ -86,7 +86,7 @@ int SGX_CDECL main (int argc, char** argv) {
         printf("Error connecting to server\n");
         return 1;
     }
-    printf("Connected to server...\n");
+    printf("Connected to server...\n\n");
     
     printf("Retrieving Library File\n");
     simpleWrite(sock, "10:getLibrary", 13);
@@ -108,7 +108,7 @@ int SGX_CDECL main (int argc, char** argv) {
     simpleWrite(libraryFD, libraryso, size);
     close(libraryFD);
     free(libraryso);
-    printf("Retrieved Library File\n");
+    printf("Retrieved Library File\n\n");
 
     printf("Getting Hash File\n");
     simpleWrite(sock, "7:getHash", 9);
@@ -129,7 +129,7 @@ int SGX_CDECL main (int argc, char** argv) {
     close(hashfd);
     free(hashDump);
     
-    printf("Got Hash File\n");
+    printf("Got Hash File\n\n");
 
     // Mock challenge response, this would normally be done by the enclave
     // requires remote attestation first and a secure connection from the enclave
@@ -151,7 +151,7 @@ int SGX_CDECL main (int argc, char** argv) {
         printf("Challenge response did not match!\n");
         return -1;
     }
-    printf("Challenge response matched\n");
+    printf("Challenge response matched\n\n");
 
     // Now we can initialize the enclave, load in the function symbols and hash values
     // then call the main enclave ECall which verifies and runs all our library functions
@@ -176,13 +176,14 @@ int SGX_CDECL main (int argc, char** argv) {
         enclave_add_function(global_eid, func_name, fcnptr, func_size, func_hash);
         printf("Registered %s, hash %s\n", func_name, func_hash);
     }
-    printf("Registered all functions\n");
+    printf("Registered all functions\n\n");
 
     simpleWrite(sock, "10:disconnect", 13);
     close(sock);
+    printf("Running unmodified library functions in enclave\n");
     // Calling enclave, no modification of library functions 
     enclave_run(global_eid);
-
+    
     //Modifying library functions
     printf("Modifying Library functions\n");
     void*string_print_test = dlsym(handle, "string_print_test");
@@ -198,14 +199,15 @@ int SGX_CDECL main (int argc, char** argv) {
     printf("Modifying basic_return_test\n");
     mprotect((void*)((unsigned long) basic_return_test - ((unsigned long) basic_return_test % getpagesize())),
         getpagesize(), PROT_READ | PROT_WRITE | PROT_EXEC);
-    printf("Trying to change function return value\n");
+    printf("Trying to change function return value\n\n");
     *((char*)basic_return_test + 5) = 0;
     // Calling functions without enclave
     
-    printf("Calling library functions without enclave\n");
+    printf("Calling modified library functions without enclave\n");
     printf("string_print_test: %d\n", ((int(*)(void))string_print_test)());
-    printf("basic_return_test: %d\n", ((int(*)(void))basic_return_test)());
+    printf("basic_return_test: %d\n\n", ((int(*)(void))basic_return_test)());
     // Calling enclave, modified library
+    printf("Calling modified library function in enclave\n");
     enclave_run(global_eid);
 
     dlclose(handle);
