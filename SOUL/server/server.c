@@ -12,7 +12,7 @@ int compileLibrary(int rval){
     execl("gcc","gcc","library.c", "-o", "library.so", "-fPIC", "-shared", "-D", command, NULL);
 */
     char command[256];
-    sprintf(command, "gcc library.c -o library.so -fPIC -shared -D RANDOM_NUM=%d", rval);
+    sprintf(command, "gcc library.c -o library.so -O0 -fPIC -shared -D RANDOM_NUM=%d", rval);
     int status = system(command);
     return status;
 }
@@ -125,7 +125,8 @@ int main(int argc, char** argv) {
             if(!strcmp(message, "disconnect")){
                 free(message);
                 remove("./library.so");
-                goto loopend;
+                //goto loopend;
+                break;
             }
             else if(!strcmp(message, "getLibrary")){
                 int status = compileLibrary(randomvalue);
@@ -149,7 +150,7 @@ int main(int argc, char** argv) {
                     break;
                 }
                 char command[512];
-                system("objdump -T library.so | grep -e dynamic_function -e response -e test_function > table.odmp");
+                system("objdump -T library.so | grep -e string_print_test -e response -e basic_return_test > table.odmp");
                 int dmpfd = open("table.odmp", O_RDONLY);
                 int size = lseek(dmpfd, 0, SEEK_END);
                 lseek(dmpfd, 0, SEEK_SET);
@@ -160,9 +161,8 @@ int main(int argc, char** argv) {
                 void* handle = dlopen("./library.so", RTLD_NOW);
                 int fsize;
                 char name[512];
-                sprintf(command, "echo %d > hash.dmp", randomvalue);
-                system(command);
-                FILE* hdmp = fopen("hash.dmp", "a+");
+                //system(command);
+                FILE* hdmp = fopen("hash.dmp", "w");
                 int status;
                 int bytesread = 0;
                 while(sscanf(dmp + bytesread, "%*s %*c %*s %*s %x %*s %s\n%n", &fsize, name, &status) != EOF){
@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
                     SHA1(ptr, fsize, hash);
                     //sprintf(command, "echo %s %s >> hash.dmp", name, hash);
                     //system(command);
-                    fprintf(hdmp, "%s ", name);
+                    fprintf(hdmp, "%s %d ", name, fsize);
                     for (int i = 0; i < 20; i++) {
                         fprintf(hdmp, "%02x", hash[i]);
                     }
@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
                 int ffd = open("hash.dmp", O_RDONLY);
                 int ffs = lseek(ffd, 0, SEEK_END);
                 lseek(ffd, 0, SEEK_SET);
-                char* fbuff = malloc(ffd);
+                char* fbuff = malloc(ffs);
                 simpleRead(ffd, fbuff, ffs);
                 sprintf(command, "%d:", ffs);
                 simpleWrite(sock, command, strlen(command));
@@ -195,23 +195,24 @@ int main(int argc, char** argv) {
                 remove("table.odmp");
             }
             else if(!strcmp(message, "getResponse")){
-                srand(random_value);
+                srand(randomvalue);
                 int challenge = rand();
-                srand(random_value + challenge);
+                srand(randomvalue + challenge);
                 int response = rand();
                 simpleWrite(sock, (char*)&challenge, sizeof(int));
                 int client_r;
-                simpleRead(sock, (char*)&challenge, sizeof(int));
+                simpleRead(sock, (char*)&client_r, sizeof(int));
                 if(client_r != response){
+                    simpleWrite(sock, "failure", 7);
                     free(message);
                     remove("./library.so");
-                    goto loopend;
+                    //goto loopend;
+                    break;
                 }
-                    
+                simpleWrite(sock, "success", 7);
             }
             free(message);
         }
-loopend:
         close(sock);
         
     }

@@ -5,6 +5,6 @@ CFLAGS = -g -ldl -lssl -lcrypto
 all: server
 
 server:
-	$(CC) $(CFLAGS) server.c -o server
+	$(CC) server.c -o server $(CFLAGS)
 clean:
 	rm server

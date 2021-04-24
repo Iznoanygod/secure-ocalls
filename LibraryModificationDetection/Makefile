@@ -5,8 +5,8 @@ CFLAGS = -g -lssl -lcrypto -ldl
 all: main library
 
 main:
-	$(CC) $(CFLAGS) main.c -o main
+	$(CC) main.c -o main $(CFLAGS)
 library:
-	$(CC) $(CFLAGS) library.c -o library.so -shared -fPIC -O0
+	$(CC) library.c -o library.so $(CFLAGS) -shared -fPIC -O0
 clean:
 	rm main library.so

@@ -1,0 +1,15 @@
+enclave {
+    //#include "sgx_tcrypto.h"
+    //#include "tlibc/string.h"
+    trusted {
+        public void enclave_run();
+        public void enclave_add_function([in, string] const char* name, [user_check]void* fcnptr, int size,  [in, string] const char* hash);
+    };
+	
+    untrusted {
+        /* define OCALLs here. */
+        void ocall_print([in, string]const char* str);
+        void* ocall_getSym([in, string]const char* str);
+        int ocall_runfcn([user_check]void* fcnptr); 
+    };
+};

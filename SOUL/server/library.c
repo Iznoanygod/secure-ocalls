@@ -5,13 +5,18 @@ void construction(){
     printf("library successfully loaded\n");
 }
 
-void dynamic_function(){
-    printf("this function was called dynamically\n");
+int string_print_test(){
+    char str1[] = "this function hash not been modified\n";
+    char str2[] = "this function has been modified\n";
+    printf(str1);
+    return 0;
 }
 
-int test_function(){
+int basic_return_test(){
     return 1 ? 1 : 0;
 }
+
+
 
 int response(int challenge){
     srand(RANDOM_NUM + challenge);
